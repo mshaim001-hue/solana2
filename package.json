@@ -1,0 +1,19 @@
+{
+  "name": "solana-yield-vault",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Solana Devnet yield / staking vault DeFi MVP (course assignment)",
+  "scripts": {
+    "build:program": "anchor build",
+    "test": "anchor test",
+    "deploy:devnet": "anchor deploy --provider.cluster devnet",
+    "setup:devnet": "node scripts/setup-devnet.mjs",
+    "web:dev": "npm --prefix web run dev",
+    "web:build": "npm --prefix web run build",
+    "web:install": "npm --prefix web install"
+  },
+  "dependencies": {
+    "@solana/spl-token": "^0.4.13",
+    "@solana/web3.js": "^1.98.4"
+  }
+}

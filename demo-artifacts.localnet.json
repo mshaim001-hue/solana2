@@ -1,0 +1,22 @@
+{
+  "programId": "9gf1uFbnaP1LZymvDWmCW92aW7upE8KGvWudwdprq7hu",
+  "authority": "4wVjCJHwfzQpk1aQhyyVMiw6bbALC7JucwCAsEpm8WfW",
+  "underlyingMint": "736rq7vniWCVW4PUZZANsUjo9AaiNjib1aUT4RnLBH1L",
+  "vault": "2KkynVNwDNp5tey8hvrFNTBRDgRrpTzBrR3zxhHmsubA",
+  "shareMint": "UgXV6VgKCSCqW64tjsHqhpN6HYHnbx1L3GeyWi5qvww",
+  "vaultToken": "12pEQh8eRW631VSsUx9TbvThzFGvRp5fhFMJLvsQrK8V",
+  "feeToken": "8vYT2ZUn1gNRgA4hxw3xUXs5y4HS25swK56tXSo2E3ni",
+  "decimals": 6,
+  "txs": {
+    "createMint": "4F75Xwu1CVBkWCJzAV1YhiJuD8DCdAnEqrecfRGT9HYgAJGJ5Fb5m7yGm2CgcUaWWgxsYF1NtuBpzPajZbTBApH2",
+    "initialize": "48q6Ycbfq3xqFytYeA125CvgKogGxi794rHrzuNfVJEvUUtSF7q54ANBk35BFFReJ3fbaoPPu3xWo55wQGYZgcwi",
+    "deposit": "5hvcfWxea6vfWucJDoYWBaqbqDbZZ2SY4uWxrzaiJRz83brX6MQAoy3wWKGoFj7mUvANkrndkNxtXQFjknwre74g",
+    "withdraw": "5ktGF3w4s8qKXDDpED3AT8svhF7AnJC81EeB2XP9QBcL8qtpxftEhUsXbASRK5xqxX6ygpbi5L32X3NykkEUmeq7"
+  },
+  "explorer": {
+    "program": "https://explorer.solana.com/address/9gf1uFbnaP1LZymvDWmCW92aW7upE8KGvWudwdprq7hu?cluster=devnet",
+    "initialize": "https://explorer.solana.com/tx/48q6Ycbfq3xqFytYeA125CvgKogGxi794rHrzuNfVJEvUUtSF7q54ANBk35BFFReJ3fbaoPPu3xWo55wQGYZgcwi?cluster=devnet",
+    "deposit": "https://explorer.solana.com/tx/5hvcfWxea6vfWucJDoYWBaqbqDbZZ2SY4uWxrzaiJRz83brX6MQAoy3wWKGoFj7mUvANkrndkNxtXQFjknwre74g?cluster=devnet",
+    "withdraw": "https://explorer.solana.com/tx/5ktGF3w4s8qKXDDpED3AT8svhF7AnJC81EeB2XP9QBcL8qtpxftEhUsXbASRK5xqxX6ygpbi5L32X3NykkEUmeq7?cluster=devnet"
+  }
+}
