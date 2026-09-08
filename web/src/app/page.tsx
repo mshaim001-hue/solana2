@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { WalletProviders } from "@/components/WalletProviders";
 
 const VaultApp = dynamic(
   () => import("@/components/VaultApp").then((m) => m.VaultApp),
@@ -15,5 +16,9 @@ const VaultApp = dynamic(
 );
 
 export default function Home() {
-  return <VaultApp />;
+  return (
+    <WalletProviders>
+      <VaultApp />
+    </WalletProviders>
+  );
 }

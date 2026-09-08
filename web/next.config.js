@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: "export",
   reactStrictMode: true,
   eslint: {
     ignoreDuringBuilds: true,
@@ -7,6 +8,10 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
+  images: {
+    unoptimized: true,
+  },
+  productionBrowserSourceMaps: false,
   webpack: (config, { isServer }) => {
     config.externals.push("pino-pretty", "lokijs", "encoding");
     if (!isServer) {
