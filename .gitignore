@@ -16,5 +16,6 @@ test-ledger
 next-env.d.ts
 app/.next
 web/.next
+web/out
 web/node_modules
 dist
