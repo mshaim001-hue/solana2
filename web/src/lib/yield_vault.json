@@ -1,0 +1,868 @@
+{
+  "address": "9gf1uFbnaP1LZymvDWmCW92aW7upE8KGvWudwdprq7hu",
+  "metadata": {
+    "name": "yield_vault",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Solana Devnet yield / staking vault DeFi MVP"
+  },
+  "instructions": [
+    {
+      "name": "deposit",
+      "docs": [
+        "Deposit underlying SPL tokens and receive vault shares."
+      ],
+      "discriminator": [
+        242,
+        35,
+        198,
+        137,
+        82,
+        225,
+        242,
+        182
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault.underlying_mint",
+                "account": "Vault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "underlying_mint",
+          "relations": [
+            "vault"
+          ]
+        },
+        {
+          "name": "share_mint",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  104,
+                  97,
+                  114,
+                  101,
+                  95,
+                  109,
+                  105,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          },
+          "relations": [
+            "vault"
+          ]
+        },
+        {
+          "name": "vault_token",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  116,
+                  111,
+                  107,
+                  101,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          },
+          "relations": [
+            "vault"
+          ]
+        },
+        {
+          "name": "user_underlying",
+          "writable": true
+        },
+        {
+          "name": "user_shares",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "fund_rewards",
+      "docs": [
+        "Authority tops up vault liquidity so accrued yield can be redeemed."
+      ],
+      "discriminator": [
+        114,
+        64,
+        163,
+        112,
+        175,
+        167,
+        19,
+        121
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true,
+          "relations": [
+            "vault"
+          ]
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault.underlying_mint",
+                "account": "Vault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "underlying_mint",
+          "relations": [
+            "vault"
+          ]
+        },
+        {
+          "name": "vault_token",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  116,
+                  111,
+                  107,
+                  101,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          },
+          "relations": [
+            "vault"
+          ]
+        },
+        {
+          "name": "authority_underlying",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "initialize",
+      "docs": [
+        "Create vault PDA, share mint, and vault token account."
+      ],
+      "discriminator": [
+        175,
+        175,
+        109,
+        31,
+        13,
+        152,
+        155,
+        237
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "underlying_mint"
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "underlying_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "share_mint",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  104,
+                  97,
+                  114,
+                  101,
+                  95,
+                  109,
+                  105,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault_token",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  116,
+                  111,
+                  107,
+                  101,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "fee_token",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  116,
+                  111,
+                  107,
+                  101,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "apy_bps",
+          "type": "u16"
+        },
+        {
+          "name": "withdrawal_fee_bps",
+          "type": "u16"
+        },
+        {
+          "name": "min_deposit",
+          "type": "u64"
+        },
+        {
+          "name": "max_tvl",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "set_paused",
+      "docs": [
+        "Pause / unpause deposits."
+      ],
+      "discriminator": [
+        91,
+        60,
+        125,
+        192,
+        176,
+        225,
+        166,
+        218
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true,
+          "relations": [
+            "vault"
+          ]
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault.underlying_mint",
+                "account": "Vault"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "paused",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "withdraw",
+      "docs": [
+        "Burn shares and withdraw underlying (minus withdrawal fee)."
+      ],
+      "discriminator": [
+        183,
+        18,
+        70,
+        156,
+        148,
+        109,
+        161,
+        34
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault.underlying_mint",
+                "account": "Vault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "underlying_mint",
+          "relations": [
+            "vault"
+          ]
+        },
+        {
+          "name": "share_mint",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  104,
+                  97,
+                  114,
+                  101,
+                  95,
+                  109,
+                  105,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          },
+          "relations": [
+            "vault"
+          ]
+        },
+        {
+          "name": "vault_token",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  116,
+                  111,
+                  107,
+                  101,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          },
+          "relations": [
+            "vault"
+          ]
+        },
+        {
+          "name": "fee_token",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  116,
+                  111,
+                  107,
+                  101,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          },
+          "relations": [
+            "vault"
+          ]
+        },
+        {
+          "name": "user_underlying",
+          "writable": true
+        },
+        {
+          "name": "user_shares",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "shares",
+          "type": "u64"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Vault",
+      "discriminator": [
+        211,
+        8,
+        232,
+        43,
+        2,
+        152,
+        117,
+        119
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "Unauthorized",
+      "msg": "Only the vault authority can perform this action"
+    },
+    {
+      "code": 6001,
+      "name": "ZeroAmount",
+      "msg": "Amount must be greater than zero"
+    },
+    {
+      "code": 6002,
+      "name": "BelowMinDeposit",
+      "msg": "Deposit below minimum"
+    },
+    {
+      "code": 6003,
+      "name": "ExceedsMaxTvl",
+      "msg": "Deposit would exceed max TVL"
+    },
+    {
+      "code": 6004,
+      "name": "VaultPaused",
+      "msg": "Vault is paused"
+    },
+    {
+      "code": 6005,
+      "name": "InsufficientShares",
+      "msg": "Insufficient vault shares"
+    },
+    {
+      "code": 6006,
+      "name": "InsufficientLiquidity",
+      "msg": "Insufficient vault liquidity for withdrawal"
+    },
+    {
+      "code": 6007,
+      "name": "MathOverflow",
+      "msg": "Math overflow"
+    },
+    {
+      "code": 6008,
+      "name": "InvalidApy",
+      "msg": "Invalid APY (max 100%)"
+    },
+    {
+      "code": 6009,
+      "name": "InvalidFee",
+      "msg": "Invalid withdrawal fee (max 10%)"
+    },
+    {
+      "code": 6010,
+      "name": "InvalidMint",
+      "msg": "Invalid mint"
+    },
+    {
+      "code": 6011,
+      "name": "InvalidTokenAccount",
+      "msg": "Invalid token account owner or mint"
+    },
+    {
+      "code": 6012,
+      "name": "InvalidLimits",
+      "msg": "Max TVL must be >= min deposit"
+    },
+    {
+      "code": 6013,
+      "name": "NothingToWithdraw",
+      "msg": "Nothing to withdraw for the given shares"
+    },
+    {
+      "code": 6014,
+      "name": "ZeroShares",
+      "msg": "Share calculation produced zero shares"
+    }
+  ],
+  "types": [
+    {
+      "name": "Vault",
+      "docs": [
+        "Global vault configuration and accounting state.",
+        "",
+        "Exchange rate: assets_per_share = total_assets / total_shares",
+        "Yield accrues by increasing `total_assets` (virtual) over time based on APY,",
+        "capped by tokens actually sitting in `vault_token` (must be funded for redeemable yield)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "docs": [
+              "Admin who can fund rewards and pause (authority signer checks)"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "underlying_mint",
+            "docs": [
+              "Underlying SPL / Token-2022 mint accepted by the vault"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "share_mint",
+            "docs": [
+              "Share mint (PDA-owned mint authority = vault)"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "vault_token",
+            "docs": [
+              "Token account holding underlying deposits + funded rewards"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "fee_token",
+            "docs": [
+              "Token account collecting withdrawal fees (PDA, authority = vault)"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "total_assets",
+            "docs": [
+              "Last snapshotted assets backing shares (principal + accrued, redeemable up to token balance)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "total_shares",
+            "docs": [
+              "Total outstanding vault shares"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "apy_bps",
+            "docs": [
+              "Annual percentage yield in basis points (e.g. 1000 = 10%)"
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "withdrawal_fee_bps",
+            "docs": [
+              "Fee charged on withdraw in basis points"
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "min_deposit",
+            "docs": [
+              "Minimum deposit amount (underlying raw units)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "max_tvl",
+            "docs": [
+              "Maximum total assets (TVL cap)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "last_update_ts",
+            "docs": [
+              "Unix timestamp of last yield accrual"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "paused",
+            "docs": [
+              "When true, deposits are rejected"
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "docs": [
+              "Vault PDA bump"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "vault_token_bump",
+            "docs": [
+              "Vault token account bump"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "fee_token_bump",
+            "docs": [
+              "Fee token account bump"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "share_mint_bump",
+            "docs": [
+              "Share mint bump"
+            ],
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ],
+  "constants": [
+    {
+      "name": "FEE_TOKEN_SEED",
+      "docs": [
+        "PDA seed for the fee token account: [\"fee_token\", vault]"
+      ],
+      "type": "bytes",
+      "value": "[102, 101, 101, 95, 116, 111, 107, 101, 110]"
+    },
+    {
+      "name": "SHARE_MINT_SEED",
+      "docs": [
+        "PDA seed for the share mint: [\"share_mint\", vault]"
+      ],
+      "type": "bytes",
+      "value": "[115, 104, 97, 114, 101, 95, 109, 105, 110, 116]"
+    },
+    {
+      "name": "VAULT_SEED",
+      "docs": [
+        "PDA seed for the vault config account: [\"vault\", underlying_mint]"
+      ],
+      "type": "bytes",
+      "value": "[118, 97, 117, 108, 116]"
+    },
+    {
+      "name": "VAULT_TOKEN_SEED",
+      "docs": [
+        "PDA seed for the vault's underlying token account: [\"vault_token\", vault]"
+      ],
+      "type": "bytes",
+      "value": "[118, 97, 117, 108, 116, 95, 116, 111, 107, 101, 110]"
+    }
+  ]
+}
