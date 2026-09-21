@@ -39,8 +39,9 @@ pub mod yield_vault {
     }
 
     /// Burn shares and withdraw underlying (minus withdrawal fee).
-    pub fn withdraw(ctx: Context<Withdraw>, shares: u64) -> Result<()> {
-        instructions::withdraw::handle_withdraw(ctx, shares)
+    /// `min_out` is the minimum net underlying the user accepts after the fee.
+    pub fn withdraw(ctx: Context<Withdraw>, shares: u64, min_out: u64) -> Result<()> {
+        instructions::withdraw::handle_withdraw(ctx, shares, min_out)
     }
 
     /// Authority tops up vault liquidity so accrued yield can be redeemed.

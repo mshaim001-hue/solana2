@@ -32,4 +32,6 @@ pub enum VaultError {
     NothingToWithdraw,
     #[msg("Share calculation produced zero shares")]
     ZeroShares,
+    #[msg("Withdrawal net amount below min_out (slippage)")]
+    SlippageExceeded,
 }

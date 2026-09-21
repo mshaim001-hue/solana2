@@ -5,7 +5,7 @@
   "vault": "2KkynVNwDNp5tey8hvrFNTBRDgRrpTzBrR3zxhHmsubA",
   "shareMint": "UgXV6VgKCSCqW64tjsHqhpN6HYHnbx1L3GeyWi5qvww",
   "vaultToken": "12pEQh8eRW631VSsUx9TbvThzFGvRp5fhFMJLvsQrK8V",
-  "feeToken": "8vYT2ZUn1gNRgA4hxw3xUXs5y4HS25swK56tXSo2E3ni",
+  "feeRecipient": "4wVjCJHwfzQpk1aQhyyVMiw6bbALC7JucwCAsEpm8WfW",
   "decimals": 6,
   "txs": {
     "createMint": "4F75Xwu1CVBkWCJzAV1YhiJuD8DCdAnEqrecfRGT9HYgAJGJ5Fb5m7yGm2CgcUaWWgxsYF1NtuBpzPajZbTBApH2",

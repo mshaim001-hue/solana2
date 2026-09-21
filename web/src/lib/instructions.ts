@@ -13,7 +13,7 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import idl from "./yield_vault.json";
-import { programId, shareMintPda, vaultPda, vaultTokenPda, feeTokenPda } from "./vault";
+import { programId, shareMintPda, vaultPda, vaultTokenPda } from "./vault";
 
 type IdlIx = {
   name: string;
@@ -51,7 +51,6 @@ export function buildInitializeIx(args: {
   const vault = vaultPda(args.underlyingMint);
   const shareMint = shareMintPda(vault);
   const vaultToken = vaultTokenPda(vault);
-  const feeToken = feeTokenPda(vault);
   const data = Buffer.concat([
     disc("initialize"),
     u16le(args.apyBps),
@@ -67,7 +66,6 @@ export function buildInitializeIx(args: {
       { pubkey: vault, isSigner: false, isWritable: true },
       { pubkey: shareMint, isSigner: false, isWritable: true },
       { pubkey: vaultToken, isSigner: false, isWritable: true },
-      { pubkey: feeToken, isSigner: false, isWritable: true },
       { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
       { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
     ],
@@ -108,16 +106,25 @@ export function buildWithdrawIx(args: {
   user: PublicKey;
   underlyingMint: PublicKey;
   shares: bigint;
+  /** Minimum net underlying after fee; defaults to 0 (no slippage guard). */
+  minOut?: bigint;
+  /** Fee recipient wallet; defaults to user (demo / same-wallet authority). */
+  feeRecipient?: PublicKey;
 }): TransactionInstruction {
   const vault = vaultPda(args.underlyingMint);
   const shareMint = shareMintPda(vault);
   const vaultToken = vaultTokenPda(vault);
-  const feeToken = feeTokenPda(vault);
+  const feeRecipient = args.feeRecipient ?? args.user;
+  const feeRecipientAta = getAssociatedTokenAddressSync(
+    args.underlyingMint,
+    feeRecipient
+  );
   const userUnderlying = getAssociatedTokenAddressSync(
     args.underlyingMint,
     args.user
   );
   const userShares = getAssociatedTokenAddressSync(shareMint, args.user);
+  const minOut = args.minOut ?? 0n;
   return new TransactionInstruction({
     programId,
     keys: [
@@ -126,12 +133,12 @@ export function buildWithdrawIx(args: {
       { pubkey: args.underlyingMint, isSigner: false, isWritable: false },
       { pubkey: shareMint, isSigner: false, isWritable: true },
       { pubkey: vaultToken, isSigner: false, isWritable: true },
-      { pubkey: feeToken, isSigner: false, isWritable: true },
+      { pubkey: feeRecipientAta, isSigner: false, isWritable: true },
       { pubkey: userUnderlying, isSigner: false, isWritable: true },
       { pubkey: userShares, isSigner: false, isWritable: true },
       { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
     ],
-    data: Buffer.concat([disc("withdraw"), u64le(args.shares)]),
+    data: Buffer.concat([disc("withdraw"), u64le(args.shares), u64le(minOut)]),
   });
 }
 

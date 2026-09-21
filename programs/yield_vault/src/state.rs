@@ -16,8 +16,8 @@ pub struct Vault {
     pub share_mint: Pubkey,
     /// Token account holding underlying deposits + funded rewards
     pub vault_token: Pubkey,
-    /// Token account collecting withdrawal fees (PDA, authority = vault)
-    pub fee_token: Pubkey,
+    /// Wallet that receives withdrawal fees (typically authority; fee goes to its ATA)
+    pub fee_recipient: Pubkey,
     /// Last snapshotted assets backing shares (principal + accrued, redeemable up to token balance)
     pub total_assets: u64,
     /// Total outstanding vault shares
@@ -38,8 +38,6 @@ pub struct Vault {
     pub bump: u8,
     /// Vault token account bump
     pub vault_token_bump: u8,
-    /// Fee token account bump
-    pub fee_token_bump: u8,
     /// Share mint bump
     pub share_mint_bump: u8,
 }

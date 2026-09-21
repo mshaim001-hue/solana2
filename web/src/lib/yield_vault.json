@@ -337,32 +337,6 @@
           }
         },
         {
-          "name": "fee_token",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  102,
-                  101,
-                  101,
-                  95,
-                  116,
-                  111,
-                  107,
-                  101,
-                  110
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "vault"
-              }
-            ]
-          }
-        },
-        {
           "name": "token_program"
         },
         {
@@ -446,7 +420,8 @@
     {
       "name": "withdraw",
       "docs": [
-        "Burn shares and withdraw underlying (minus withdrawal fee)."
+        "Burn shares and withdraw underlying (minus withdrawal fee).",
+        "`min_out` is the minimum net underlying the user accepts after the fee."
       ],
       "discriminator": [
         183,
@@ -555,33 +530,8 @@
           ]
         },
         {
-          "name": "fee_token",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  102,
-                  101,
-                  101,
-                  95,
-                  116,
-                  111,
-                  107,
-                  101,
-                  110
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "vault"
-              }
-            ]
-          },
-          "relations": [
-            "vault"
-          ]
+          "name": "fee_recipient_ata",
+          "writable": true
         },
         {
           "name": "user_underlying",
@@ -598,6 +548,10 @@
       "args": [
         {
           "name": "shares",
+          "type": "u64"
+        },
+        {
+          "name": "min_out",
           "type": "u64"
         }
       ]
@@ -693,6 +647,11 @@
       "code": 6014,
       "name": "ZeroShares",
       "msg": "Share calculation produced zero shares"
+    },
+    {
+      "code": 6015,
+      "name": "SlippageExceeded",
+      "msg": "Withdrawal net amount below min_out (slippage)"
     }
   ],
   "types": [
@@ -737,9 +696,9 @@
             "type": "pubkey"
           },
           {
-            "name": "fee_token",
+            "name": "fee_recipient",
             "docs": [
-              "Token account collecting withdrawal fees (PDA, authority = vault)"
+              "Wallet that receives withdrawal fees (typically authority; fee goes to its ATA)"
             ],
             "type": "pubkey"
           },
@@ -814,13 +773,6 @@
             "type": "u8"
           },
           {
-            "name": "fee_token_bump",
-            "docs": [
-              "Fee token account bump"
-            ],
-            "type": "u8"
-          },
-          {
             "name": "share_mint_bump",
             "docs": [
               "Share mint bump"
@@ -832,14 +784,6 @@
     }
   ],
   "constants": [
-    {
-      "name": "FEE_TOKEN_SEED",
-      "docs": [
-        "PDA seed for the fee token account: [\"fee_token\", vault]"
-      ],
-      "type": "bytes",
-      "value": "[102, 101, 101, 95, 116, 111, 107, 101, 110]"
-    },
     {
       "name": "SHARE_MINT_SEED",
       "docs": [

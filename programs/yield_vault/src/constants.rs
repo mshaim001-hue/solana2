@@ -8,10 +8,6 @@ pub const VAULT_SEED: &[u8] = b"vault";
 #[constant]
 pub const VAULT_TOKEN_SEED: &[u8] = b"vault_token";
 
-/// PDA seed for the fee token account: ["fee_token", vault]
-#[constant]
-pub const FEE_TOKEN_SEED: &[u8] = b"fee_token";
-
 /// PDA seed for the share mint: ["share_mint", vault]
 #[constant]
 pub const SHARE_MINT_SEED: &[u8] = b"share_mint";

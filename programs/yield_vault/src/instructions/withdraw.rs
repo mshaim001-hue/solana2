@@ -20,7 +20,6 @@ pub struct Withdraw<'info> {
         has_one = underlying_mint @ VaultError::InvalidMint,
         has_one = share_mint @ VaultError::InvalidMint,
         has_one = vault_token @ VaultError::InvalidTokenAccount,
-        has_one = fee_token @ VaultError::InvalidTokenAccount,
     )]
     pub vault: Box<Account<'info, Vault>>,
 
@@ -43,14 +42,13 @@ pub struct Withdraw<'info> {
     )]
     pub vault_token: Box<InterfaceAccount<'info, TokenAccount>>,
 
+    /// ATA of `vault.fee_recipient` — receives the withdrawal fee.
     #[account(
         mut,
-        seeds = [FEE_TOKEN_SEED, vault.key().as_ref()],
-        bump = vault.fee_token_bump,
-        token::mint = underlying_mint,
-        token::authority = vault,
+        constraint = fee_recipient_ata.mint == vault.underlying_mint @ VaultError::InvalidMint,
+        constraint = fee_recipient_ata.owner == vault.fee_recipient @ VaultError::InvalidTokenAccount,
     )]
-    pub fee_token: Box<InterfaceAccount<'info, TokenAccount>>,
+    pub fee_recipient_ata: Box<InterfaceAccount<'info, TokenAccount>>,
 
     #[account(
         mut,
@@ -69,7 +67,7 @@ pub struct Withdraw<'info> {
     pub token_program: Interface<'info, TokenInterface>,
 }
 
-pub fn handle_withdraw(ctx: Context<Withdraw>, shares: u64) -> Result<()> {
+pub fn handle_withdraw(ctx: Context<Withdraw>, shares: u64, min_out: u64) -> Result<()> {
     require!(shares > 0, VaultError::ZeroAmount);
     require!(
         ctx.accounts.user_shares.amount >= shares,
@@ -84,6 +82,8 @@ pub fn handle_withdraw(ctx: Context<Withdraw>, shares: u64) -> Result<()> {
     require!(gross > 0, VaultError::NothingToWithdraw);
 
     let (net, fee) = apply_withdrawal_fee(gross, vault.withdrawal_fee_bps)?;
+    require!(net >= min_out, VaultError::SlippageExceeded);
+
     let total_out = net
         .checked_add(fee)
         .ok_or(VaultError::MathOverflow)?;
@@ -127,13 +127,14 @@ pub fn handle_withdraw(ctx: Context<Withdraw>, shares: u64) -> Result<()> {
     )?;
 
     if fee > 0 {
+        // When user == fee_recipient the fee ATA may equal user_underlying; that is fine.
         token_interface::transfer_checked(
             CpiContext::new_with_signer(
                 token_program,
                 TransferChecked {
                     from: ctx.accounts.vault_token.to_account_info(),
                     mint: ctx.accounts.underlying_mint.to_account_info(),
-                    to: ctx.accounts.fee_token.to_account_info(),
+                    to: ctx.accounts.fee_recipient_ata.to_account_info(),
                     authority: vault.to_account_info(),
                 },
                 signer,
@@ -153,11 +154,12 @@ pub fn handle_withdraw(ctx: Context<Withdraw>, shares: u64) -> Result<()> {
         .ok_or(VaultError::MathOverflow)?;
 
     msg!(
-        "Withdrew {} shares → {} net + {} fee (gross {})",
+        "Withdrew {} shares → {} net + {} fee (gross {}, min_out {})",
         shares,
         net,
         fee,
-        gross
+        gross,
+        min_out
     );
     Ok(())
 }

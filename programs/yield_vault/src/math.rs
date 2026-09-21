@@ -30,6 +30,11 @@ pub fn accrue_yield(vault: &mut Vault, now: i64) -> Result<()> {
         .ok_or(VaultError::MathOverflow)?;
 
     let interest_u64 = u64::try_from(interest).map_err(|_| VaultError::MathOverflow)?;
+    // Zero interest from integer rounding must not advance the clock, otherwise
+    // frequent small accruals permanently starve yield.
+    if interest_u64 == 0 {
+        return Ok(());
+    }
     vault.total_assets = vault
         .total_assets
         .checked_add(interest_u64)
@@ -96,7 +101,7 @@ mod unit_tests {
             underlying_mint: Pubkey::default(),
             share_mint: Pubkey::default(),
             vault_token: Pubkey::default(),
-            fee_token: Pubkey::default(),
+            fee_recipient: Pubkey::default(),
             total_assets: assets,
             total_shares: shares,
             apy_bps,
@@ -107,7 +112,6 @@ mod unit_tests {
             paused: false,
             bump: 255,
             vault_token_bump: 255,
-            fee_token_bump: 255,
             share_mint_bump: 255,
         }
     }
@@ -140,6 +144,21 @@ mod unit_tests {
         assert!(vault.total_assets > 1_000_000_000);
         // Roughly +50% at 100% APY over half year
         assert!(vault.total_assets >= 1_499_000_000 && vault.total_assets <= 1_501_000_000);
+    }
+
+    #[test]
+    fn accrue_zero_interest_does_not_reset_timestamp() {
+        let mut vault = sample_vault(1_000_000, 1_000_000, 1000); // 10% APY
+        let start = vault.last_update_ts;
+        // ~60s is too short to produce ≥1 unit of interest for these params
+        accrue_yield(&mut vault, start + 60).unwrap();
+        assert_eq!(vault.total_assets, 1_000_000);
+        assert_eq!(vault.last_update_ts, start);
+
+        // Enough elapsed time should both credit interest and advance the clock
+        accrue_yield(&mut vault, start + 400).unwrap();
+        assert!(vault.total_assets > 1_000_000);
+        assert_eq!(vault.last_update_ts, start + 400);
     }
 
     #[test]

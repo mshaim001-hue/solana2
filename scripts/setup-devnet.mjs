@@ -127,7 +127,6 @@ async function main() {
   const vault = pda([Buffer.from("vault"), mintKp.publicKey.toBuffer()]);
   const shareMint = pda([Buffer.from("share_mint"), vault.toBuffer()]);
   const vaultToken = pda([Buffer.from("vault_token"), vault.toBuffer()]);
-  const feeToken = pda([Buffer.from("fee_token"), vault.toBuffer()]);
 
   const apyBps = 1000; // 10%
   const feeBps = 50; // 0.5%
@@ -149,7 +148,6 @@ async function main() {
       { pubkey: vault, isSigner: false, isWritable: true },
       { pubkey: shareMint, isSigner: false, isWritable: true },
       { pubkey: vaultToken, isSigner: false, isWritable: true },
-      { pubkey: feeToken, isSigner: false, isWritable: true },
       { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
       { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
     ],
@@ -211,8 +209,9 @@ async function main() {
   ]);
   console.log("Fund+Deposit:", depositSig);
 
-  // Small withdraw
+  // Small withdraw with min_out = 0 (demo); fee → authority ATA
   const withdrawShares = 5_000_000n; // 5 share units (6 decimals)
+  const minOut = 0n;
   const withdrawTx = new Transaction().add(
     ComputeBudgetProgram.setComputeUnitLimit({ units: 400_000 }),
     {
@@ -223,12 +222,16 @@ async function main() {
         { pubkey: mintKp.publicKey, isSigner: false, isWritable: false },
         { pubkey: shareMint, isSigner: false, isWritable: true },
         { pubkey: vaultToken, isSigner: false, isWritable: true },
-        { pubkey: feeToken, isSigner: false, isWritable: true },
-        { pubkey: ata, isSigner: false, isWritable: true },
+        { pubkey: ata, isSigner: false, isWritable: true }, // fee_recipient ATA
+        { pubkey: ata, isSigner: false, isWritable: true }, // user_underlying
         { pubkey: userShares, isSigner: false, isWritable: true },
         { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
       ],
-      data: Buffer.concat([disc("withdraw"), u64(withdrawShares)]),
+      data: Buffer.concat([
+        disc("withdraw"),
+        u64(withdrawShares),
+        u64(minOut),
+      ]),
     }
   );
   const withdrawSig = await sendAndConfirmTransaction(connection, withdrawTx, [
@@ -248,11 +251,11 @@ async function main() {
     rpc,
     programId: PROGRAM_ID.toBase58(),
     authority: payer.publicKey.toBase58(),
+    feeRecipient: payer.publicKey.toBase58(),
     underlyingMint: mintKp.publicKey.toBase58(),
     vault: vault.toBase58(),
     shareMint: shareMint.toBase58(),
     vaultToken: vaultToken.toBase58(),
-    feeToken: feeToken.toBase58(),
     decimals: mintInfo.decimals,
     txs: {
       createMint: mintSig,
@@ -283,7 +286,7 @@ export const DEVNET_CONFIG = {
   vault: "${demo.vault}",
   shareMint: "${demo.shareMint}",
   vaultToken: "${demo.vaultToken}",
-  feeToken: "${demo.feeToken}",
+  feeRecipient: "${demo.feeRecipient}",
   authority: "${demo.authority}",
   txs: {
     initialize: "${demo.txs.initialize}",
@@ -294,7 +297,6 @@ export const DEVNET_CONFIG = {
 
 export const VAULT_SEED = Buffer.from("vault");
 export const VAULT_TOKEN_SEED = Buffer.from("vault_token");
-export const FEE_TOKEN_SEED = Buffer.from("fee_token");
 export const SHARE_MINT_SEED = Buffer.from("share_mint");
 `;
   fs.writeFileSync(path.join(root, "web/src/lib/config.ts"), configTs);

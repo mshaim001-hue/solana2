@@ -19,3 +19,5 @@ web/.next
 web/out
 web/node_modules
 dist
+.tools/
+.cargo-home/

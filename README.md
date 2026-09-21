@@ -10,7 +10,7 @@
 |---|---|
 | `initialize` | Создание Vault PDA, share mint, vault token account |
 | `deposit` | Ввод underlying → mint shares |
-| `withdraw` | Burn shares → вывод underlying минус fee |
+| `withdraw` | Burn shares → вывод underlying минус fee (с `min_out`) |
 | `fund_rewards` | Authority пополняет ликвидность под начисленный yield |
 | `set_paused` | Пауза депозитов |
 
@@ -18,9 +18,11 @@
 
 - **APY** задаётся в basis points при `initialize` (демо: 10% = 1000 bps).
 - При каждом `deposit` / `withdraw` / `fund_rewards` вызывается `accrue_yield`:  
-  `interest = total_assets * apy_bps * Δt / (10_000 * seconds_per_year)`.
+  `interest = total_assets * apy_bps * Δt / (10_000 * seconds_per_year)`.  
+  Если interest округляется до 0, `last_update_ts` **не** сдвигается (время накапливается).
 - **Exchange rate**: `assets_per_share = total_assets / total_shares` (первый депозит 1:1).
 - **Withdrawal fee** (демо: 0.5% = 50 bps) уходит на ATA `fee_recipient` (обычно authority).
+- **min_out** на `withdraw`: net после fee должен быть ≥ `min_out`, иначе `SlippageExceeded`.
 - Redeemable yield ограничен балансом `vault_token`: виртуальное начисление без `fund_rewards` не позволит вывести больше фактической ликвидности (`InsufficientLiquidity`).
 
 ## Архитектура и PDA
@@ -32,14 +34,15 @@
 | `Vault` | `["vault", underlying_mint]` | Конфиг + accounting |
 | `share_mint` | `["share_mint", vault]` | SPL mint долей (authority = Vault PDA) |
 | `vault_token` | `["vault_token", vault]` | Хранилище underlying (authority = Vault PDA) |
-| `fee_token` | `["fee_token", vault]` | Accumulated withdrawal fees |
 
-Проверки: signer, `has_one` mint/token, owner ATA, min deposit, max TVL, pause, checked arithmetic (`checked_*` / `u128`).
+`fee_recipient` хранится в `Vault` (по умолчанию = authority); fee на withdraw уходит на его ATA (не в PDA).
+
+Проверки: signer, `has_one` mint/token, owner ATA, min deposit, max TVL, pause, `min_out` на withdraw, checked arithmetic (`checked_*` / `u128`).
 
 ```
 User wallet ──deposit──► vault_token (PDA)
              ◄─shares─── share_mint (PDA mint)
-User wallet ◄─withdraw── vault_token (− fee → authority ATA)
+User wallet ◄─withdraw── vault_token (− fee → fee_recipient ATA)
 Authority  ──fund──────► vault_token
 ```
 
@@ -83,7 +86,7 @@ anchor build
 anchor test
 ```
 
-Тесты: ≥5 unit + ≥5 integration LiteSVM (включая негативные: zero deposit, missing accounts, invalid APY path).
+Тесты: ≥5 unit + ≥5 integration LiteSVM (happy-path deposit/withdraw/fund_rewards, authority checks, min_out, негативные missing accounts).
 
 ### 2. Деплой на Devnet
 
@@ -158,7 +161,7 @@ README.md
 - Реальный источник yield (lending / LP fees), а не synthetic APY
 - Timelock + multisig на authority
 - Formal verification / audit, fuzz (Anchor fuzz), invariant tests
-- Slippage / min-out на withdraw, rate limiting
+- Rate limiting на withdraw
 - Token-2022 transfer fee / permanent delegate edge cases
 - Upgrade authority freeze / immutable program после аудита
 

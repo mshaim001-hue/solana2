@@ -4,7 +4,6 @@ import {
   SHARE_MINT_SEED,
   VAULT_SEED,
   VAULT_TOKEN_SEED,
-  FEE_TOKEN_SEED,
 } from "./config";
 
 export const programId = new PublicKey(PROGRAM_ID);
@@ -30,19 +29,12 @@ export function vaultTokenPda(vault: PublicKey): PublicKey {
   )[0];
 }
 
-export function feeTokenPda(vault: PublicKey): PublicKey {
-  return PublicKey.findProgramAddressSync(
-    [FEE_TOKEN_SEED, vault.toBuffer()],
-    programId
-  )[0];
-}
-
 export type VaultAccount = {
   authority: PublicKey;
   underlyingMint: PublicKey;
   shareMint: PublicKey;
   vaultToken: PublicKey;
-  feeToken: PublicKey;
+  feeRecipient: PublicKey;
   totalAssets: bigint;
   totalShares: bigint;
   apyBps: number;
@@ -53,7 +45,6 @@ export type VaultAccount = {
   paused: boolean;
   bump: number;
   vaultTokenBump: number;
-  feeTokenBump: number;
   shareMintBump: number;
 };
 
@@ -86,7 +77,7 @@ export function decodeVault(data: Buffer): VaultAccount {
     underlyingMint: readPk(),
     shareMint: readPk(),
     vaultToken: readPk(),
-    feeToken: readPk(),
+    feeRecipient: readPk(),
     totalAssets: readU64(),
     totalShares: readU64(),
     apyBps: readU16(),
@@ -97,7 +88,6 @@ export function decodeVault(data: Buffer): VaultAccount {
     paused: data[o++] === 1,
     bump: data[o++],
     vaultTokenBump: data[o++],
-    feeTokenBump: data[o++],
     shareMintBump: data[o++],
   };
 }

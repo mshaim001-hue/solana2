@@ -15,5 +15,8 @@
   "dependencies": {
     "@solana/spl-token": "^0.4.13",
     "@solana/web3.js": "^1.98.4"
+  },
+  "devDependencies": {
+    "@coral-xyz/anchor-cli": "^0.31.2"
   }
 }

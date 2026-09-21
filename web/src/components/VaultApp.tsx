@@ -159,6 +159,8 @@ export function VaultApp() {
           user: publicKey,
           underlyingMint,
           shares,
+          minOut: 0n,
+          feeRecipient: vault.feeRecipient,
         })
       );
       return tx;

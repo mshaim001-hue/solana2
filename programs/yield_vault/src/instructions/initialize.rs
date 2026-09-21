@@ -44,17 +44,6 @@ pub struct Initialize<'info> {
     )]
     pub vault_token: InterfaceAccount<'info, TokenAccount>,
 
-    #[account(
-        init,
-        payer = authority,
-        seeds = [FEE_TOKEN_SEED, vault.key().as_ref()],
-        bump,
-        token::mint = underlying_mint,
-        token::authority = vault,
-        token::token_program = token_program,
-    )]
-    pub fee_token: InterfaceAccount<'info, TokenAccount>,
-
     pub token_program: Interface<'info, TokenInterface>,
     pub system_program: Program<'info, System>,
 }
@@ -80,7 +69,7 @@ pub fn handle_initialize(
     vault.underlying_mint = ctx.accounts.underlying_mint.key();
     vault.share_mint = ctx.accounts.share_mint.key();
     vault.vault_token = ctx.accounts.vault_token.key();
-    vault.fee_token = ctx.accounts.fee_token.key();
+    vault.fee_recipient = ctx.accounts.authority.key();
     vault.total_assets = 0;
     vault.total_shares = 0;
     vault.apy_bps = apy_bps;
@@ -91,7 +80,6 @@ pub fn handle_initialize(
     vault.paused = false;
     vault.bump = ctx.bumps.vault;
     vault.vault_token_bump = ctx.bumps.vault_token;
-    vault.fee_token_bump = ctx.bumps.fee_token;
     vault.share_mint_bump = ctx.bumps.share_mint;
 
     msg!(
