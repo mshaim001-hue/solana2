@@ -2,6 +2,8 @@
 
 Учебный **yield / staking vault** на Solana Devnet: депозит SPL-токена, учёт долей (share mint), начисление APY по времени, вывод с комиссией. Mainnet и реальные средства не используются.
 
+**Демо:** https://solana2-swart.vercel.app · **GitHub:** https://github.com/mshaim001-hue/solana2 · **Program ID:** `HCM2iWcvchzhsnZnwbLdxBHWvgn4hkEyZ9CVGdgRkjPg`
+
 ## Выбранная механика
 
 **Yield / staking vault**
@@ -28,7 +30,7 @@
 
 ## Архитектура и PDA
 
-**Program ID:** `9gf1uFbnaP1LZymvDWmCW92aW7upE8KGvWudwdprq7hu`
+**Program ID:** `HCM2iWcvchzhsnZnwbLdxBHWvgn4hkEyZ9CVGdgRkjPg`
 
 | Аккаунт | Seeds | Назначение |
 |---|---|---|
@@ -120,13 +122,16 @@ cd web && npm install && npm run dev
 
 ### Деплой на Vercel
 
-В настройках проекта Vercel обязательно укажите:
+Проект: [vercel.com/stopsmokings-projects/solana2](https://vercel.com/stopsmokings-projects/solana2)  
+Публичное демо: https://solana2-swart.vercel.app  
+
+В настройках Vercel обязательно:
 
 - **Root Directory:** `web` (Settings → General → Root Directory)
 - Framework Preset: Next.js
 - Env: **не нужны**
 
-Без `Root Directory = web` деплой идёт из корня репозитория и отдаёт **404**.
+Без `Root Directory = web` деплой идёт из корня репозитория и отдаёт **404**. Push в `main` запускает автодеплой.
 
 ## Program ID и транзакции
 
@@ -144,8 +149,9 @@ cd web && npm install && npm run dev
 
 Полный набор адресов: `demo-artifacts.json`.
 
-**Демо UI:** `cd web && npm run dev` → http://localhost:3000 (mint уже прописан в `web/src/lib/config.ts`)  
-**Видео:** запишите 3–5 мин (кошелёк → deposit → withdraw → Explorer).
+**Демо UI (Devnet):** https://solana2-swart.vercel.app  
+Локально: `cd web && npm run dev` → http://localhost:3000 (mint уже в `web/src/lib/config.ts`).  
+Phantom → сеть **Devnet**. Статусы: pending → success (Explorer) / error.
 
 ## Структура репозитория
 
