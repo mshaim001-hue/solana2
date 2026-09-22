@@ -130,17 +130,17 @@ cd web && npm install && npm run dev
 
 ## Program ID и транзакции
 
-**Program ID:** `9gf1uFbnaP1LZymvDWmCW92aW7upE8KGvWudwdprq7hu`  
-**Program Explorer:** https://explorer.solana.com/address/9gf1uFbnaP1LZymvDWmCW92aW7upE8KGvWudwdprq7hu?cluster=devnet
+**Program ID:** `HCM2iWcvchzhsnZnwbLdxBHWvgn4hkEyZ9CVGdgRkjPg`  
+**Program Explorer:** https://explorer.solana.com/address/HCM2iWcvchzhsnZnwbLdxBHWvgn4hkEyZ9CVGdgRkjPg?cluster=devnet
 
 | Операция | Explorer |
 |---|---|
-| Initialize | https://explorer.solana.com/tx/4NMqvX6fkjorw2Waty8muuMXfPm62nyJw51j3XJcbPQUwQZEAjm2XsKbYQEZrkx9Cd2FJL7uQRT6yS5XuXHiRnqB?cluster=devnet |
-| Deposit (+ fund rewards) | https://explorer.solana.com/tx/WSiPDZ4XHjAKHsJueX1AErxUiLYeajGR3rx8NWFvbHoVCEYBLWvXpuRgLneASbkTmGjr9Nyy9GnEJWTRE5FpVYT?cluster=devnet |
-| Withdraw | https://explorer.solana.com/tx/59arLkie4JHYv8521zVUtS3PY9X4zWnWwQeXNcsWrmfUR32Y7LZwQK4uKAbKJmm81UjCC7MXjW7F7fhLJSA7mM3e?cluster=devnet |
+| Initialize | https://explorer.solana.com/tx/2dQ7ntbsQMH3qXjVNqhYGbohesB9BHCnrZjycfH633qATwLF8Su7MfwXEeLtiZX7f8LKkkVqEz2m8xXfdp7STHHE?cluster=devnet |
+| Deposit (+ fund rewards) | https://explorer.solana.com/tx/3aE7nDLXkbvQoZx4LEWtjW25UvhvqssAxin8PaseBJNgg4x9ZwMkrMTTkc8gndk5n845bG51m6qqHgKJyvdzJuyA?cluster=devnet |
+| Withdraw | https://explorer.solana.com/tx/42RUBtajDNat2qAWh468ytQLJiZmNqrd4HfHLuNvdBahrujZkjo29QEwtnfCCTsDLv7U1H2ETp9uvj9MvddxY46z?cluster=devnet |
 
-**Underlying mint:** `AX9xgr6HoZG75bdNBjzuRatEUeVR3qXpg82ztzaT5sVL`  
-**Vault PDA:** `ExtwCDFeuESr6DFXAMp3kHodBtRqMunJMi7iwo7LpNP2`
+**Underlying mint:** `GYLPoYJvP24nGTHJ9c2Naq2nRiyX5kL26yZ8Rh72VXUN`  
+**Vault PDA:** `5NBgkwgAfAXMSqNKaHmFSKfA5mYeDXXYFF3LnCwp5z4b`
 
 Полный набор адресов: `demo-artifacts.json`.
 

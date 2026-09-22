@@ -6,11 +6,11 @@ skip_local_validator = true
 resolution = true
 skip-lint = false
 
-[programs.localnet]
-yield_vault = "5DTpb6picURvKtEVjXWbdX9coNFERr1gWDS8f59YXmMk"
-
 [programs.devnet]
-yield_vault = "5DTpb6picURvKtEVjXWbdX9coNFERr1gWDS8f59YXmMk"
+yield_vault = "HCM2iWcvchzhsnZnwbLdxBHWvgn4hkEyZ9CVGdgRkjPg"
+
+[programs.localnet]
+yield_vault = "HCM2iWcvchzhsnZnwbLdxBHWvgn4hkEyZ9CVGdgRkjPg"
 
 [provider]
 cluster = "localnet"
