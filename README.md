@@ -23,6 +23,7 @@
 - **Exchange rate**: `assets_per_share = total_assets / total_shares` (первый депозит 1:1).
 - **Withdrawal fee** (демо: 0.5% = 50 bps) уходит на ATA `fee_recipient` (обычно authority).
 - **min_out** на `withdraw`: net после fee должен быть ≥ `min_out`, иначе `SlippageExceeded`.
+- Если `fee_recipient == user`, `fee_recipient_ata` передаётся как `None` (иначе Solana отклонит duplicate mutable account); net+fee уходят одним transfer на ATA пользователя.
 - Redeemable yield ограничен балансом `vault_token`: виртуальное начисление без `fund_rewards` не позволит вывести больше фактической ликвидности (`InsufficientLiquidity`).
 
 ## Архитектура и PDA

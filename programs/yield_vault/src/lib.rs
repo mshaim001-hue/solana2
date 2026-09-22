@@ -10,7 +10,7 @@ pub use constants::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("9gf1uFbnaP1LZymvDWmCW92aW7upE8KGvWudwdprq7hu");
+declare_id!("5DTpb6picURvKtEVjXWbdX9coNFERr1gWDS8f59YXmMk");
 
 #[program]
 pub mod yield_vault {

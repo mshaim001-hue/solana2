@@ -210,8 +210,19 @@ fn program_bytes_load_into_litesvm() {
 #[test]
 fn initialize_deposit_withdraw_fund_rewards_happy_path() {
     let mut fx = setup_initialized_vault();
-    let authority_pk = fx.authority.pubkey();
-    let user_shares = create_user_shares(&mut fx, &authority_pk);
+
+    // Separate depositor so fee_recipient ATA ≠ user ATA (no duplicate mutable account).
+    let user = Keypair::new();
+    fx.svm.airdrop(&user.pubkey(), 1_000_000_000).unwrap();
+    let user_ata = Keypair::new().pubkey();
+    set_token_account(
+        &mut fx.svm,
+        user_ata,
+        &fx.mint.pubkey(),
+        &user.pubkey(),
+        100_000_000, // 100 tokens
+    );
+    let user_shares = create_user_shares(&mut fx, &user.pubkey());
 
     let deposit_amt = 50_000_000u64; // 50 tokens
     let deposit_ix = Instruction::new_with_bytes(
@@ -221,25 +232,22 @@ fn initialize_deposit_withdraw_fund_rewards_happy_path() {
         }
         .data(),
         yield_vault::accounts::Deposit {
-            user: fx.authority.pubkey(),
+            user: user.pubkey(),
             vault: fx.vault,
             underlying_mint: fx.mint.pubkey(),
             share_mint: fx.share_mint,
             vault_token: fx.vault_token,
-            user_underlying: fx.authority_ata,
+            user_underlying: user_ata,
             user_shares,
             token_program: token_program_id(),
         }
         .to_account_metas(None),
     );
-    send_ix(&mut fx.svm, &fx.authority, deposit_ix).expect("deposit");
+    send_ix(&mut fx.svm, &user, deposit_ix).expect("deposit");
 
     assert_eq!(token_amount(&fx.svm, &fx.vault_token), deposit_amt);
     assert_eq!(token_amount(&fx.svm, &user_shares), deposit_amt); // 1:1 first deposit
-    assert_eq!(
-        token_amount(&fx.svm, &fx.authority_ata),
-        1_000_000_000 - deposit_amt
-    );
+    assert_eq!(token_amount(&fx.svm, &user_ata), 100_000_000 - deposit_amt);
 
     // Fund rewards: liquidity up, share supply unchanged
     let fund_amt = 10_000_000u64;
@@ -263,13 +271,68 @@ fn initialize_deposit_withdraw_fund_rewards_happy_path() {
     );
     assert_eq!(token_amount(&fx.svm, &user_shares), deposit_amt);
 
-    // Withdraw 10 shares @ 0.5% fee → net 9_950_000, fee 50_000 → same ATA (authority)
+    // Withdraw 10 shares @ 0.5% fee → net 9_950_000 to user, fee 50_000 to authority ATA
     let withdraw_shares = 10_000_000u64;
-    let before_user = token_amount(&fx.svm, &fx.authority_ata);
+    let before_user = token_amount(&fx.svm, &user_ata);
+    let before_fee = token_amount(&fx.svm, &fx.authority_ata);
     let withdraw_ix = Instruction::new_with_bytes(
         fx.program_id,
         &yield_vault::instruction::Withdraw {
             shares: withdraw_shares,
+            min_out: 9_950_000,
+        }
+        .data(),
+        yield_vault::accounts::Withdraw {
+            user: user.pubkey(),
+            vault: fx.vault,
+            underlying_mint: fx.mint.pubkey(),
+            share_mint: fx.share_mint,
+            vault_token: fx.vault_token,
+            fee_recipient_ata: Some(fx.authority_ata),
+            user_underlying: user_ata,
+            user_shares,
+            token_program: token_program_id(),
+        }
+        .to_account_metas(None),
+    );
+    send_ix(&mut fx.svm, &user, withdraw_ix).expect("withdraw");
+
+    assert_eq!(token_amount(&fx.svm, &user_ata) - before_user, 9_950_000);
+    assert_eq!(token_amount(&fx.svm, &fx.authority_ata) - before_fee, 50_000);
+    assert_eq!(token_amount(&fx.svm, &user_shares), deposit_amt - withdraw_shares);
+}
+
+#[test]
+fn withdraw_when_user_is_fee_recipient_omits_fee_ata() {
+    let mut fx = setup_initialized_vault();
+    let authority_pk = fx.authority.pubkey();
+    let user_shares = create_user_shares(&mut fx, &authority_pk);
+
+    let deposit_ix = Instruction::new_with_bytes(
+        fx.program_id,
+        &yield_vault::instruction::Deposit {
+            amount: 50_000_000,
+        }
+        .data(),
+        yield_vault::accounts::Deposit {
+            user: fx.authority.pubkey(),
+            vault: fx.vault,
+            underlying_mint: fx.mint.pubkey(),
+            share_mint: fx.share_mint,
+            vault_token: fx.vault_token,
+            user_underlying: fx.authority_ata,
+            user_shares,
+            token_program: token_program_id(),
+        }
+        .to_account_metas(None),
+    );
+    send_ix(&mut fx.svm, &fx.authority, deposit_ix).expect("deposit");
+
+    let before = token_amount(&fx.svm, &fx.authority_ata);
+    let withdraw_ix = Instruction::new_with_bytes(
+        fx.program_id,
+        &yield_vault::instruction::Withdraw {
+            shares: 10_000_000,
             min_out: 9_950_000,
         }
         .data(),
@@ -279,19 +342,16 @@ fn initialize_deposit_withdraw_fund_rewards_happy_path() {
             underlying_mint: fx.mint.pubkey(),
             share_mint: fx.share_mint,
             vault_token: fx.vault_token,
-            fee_recipient_ata: fx.authority_ata,
+            fee_recipient_ata: None,
             user_underlying: fx.authority_ata,
             user_shares,
             token_program: token_program_id(),
         }
         .to_account_metas(None),
     );
-    send_ix(&mut fx.svm, &fx.authority, withdraw_ix).expect("withdraw");
-
-    // net + fee both credited to authority ATA when fee_recipient == user
-    let after_user = token_amount(&fx.svm, &fx.authority_ata);
-    assert_eq!(after_user - before_user, 10_000_000);
-    assert_eq!(token_amount(&fx.svm, &user_shares), deposit_amt - withdraw_shares);
+    send_ix(&mut fx.svm, &fx.authority, withdraw_ix).expect("withdraw as fee recipient");
+    // Single transfer of gross (net + fee) back to the same ATA
+    assert_eq!(token_amount(&fx.svm, &fx.authority_ata) - before, 10_000_000);
 }
 
 #[test]
@@ -377,7 +437,7 @@ fn withdraw_rejects_min_out_slippage() {
     );
     send_ix(&mut fx.svm, &fx.authority, deposit_ix).expect("deposit");
 
-    // Request impossible min_out
+    // Request impossible min_out (user == fee_recipient → fee ATA omitted)
     let withdraw_ix = Instruction::new_with_bytes(
         fx.program_id,
         &yield_vault::instruction::Withdraw {
@@ -391,7 +451,7 @@ fn withdraw_rejects_min_out_slippage() {
             underlying_mint: fx.mint.pubkey(),
             share_mint: fx.share_mint,
             vault_token: fx.vault_token,
-            fee_recipient_ata: fx.authority_ata,
+            fee_recipient_ata: None,
             user_underlying: fx.authority_ata,
             user_shares,
             token_program: token_program_id(),
@@ -468,7 +528,7 @@ fn withdraw_rejects_missing_accounts() {
             underlying_mint: fake_mint,
             share_mint,
             vault_token,
-            fee_recipient_ata: Keypair::new().pubkey(),
+            fee_recipient_ata: Some(Keypair::new().pubkey()),
             user_underlying: Keypair::new().pubkey(),
             user_shares: Keypair::new().pubkey(),
             token_program: token_program_id(),

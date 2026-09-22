@@ -115,16 +115,18 @@ export function buildWithdrawIx(args: {
   const shareMint = shareMintPda(vault);
   const vaultToken = vaultTokenPda(vault);
   const feeRecipient = args.feeRecipient ?? args.user;
-  const feeRecipientAta = getAssociatedTokenAddressSync(
-    args.underlyingMint,
-    feeRecipient
-  );
   const userUnderlying = getAssociatedTokenAddressSync(
     args.underlyingMint,
     args.user
   );
   const userShares = getAssociatedTokenAddressSync(shareMint, args.user);
   const minOut = args.minOut ?? 0n;
+  // When user is fee recipient, omit fee ATA (pass program id) — Solana forbids
+  // the same writable account twice in one instruction.
+  const sameRecipient = feeRecipient.equals(args.user);
+  const feeRecipientAta = sameRecipient
+    ? programId
+    : getAssociatedTokenAddressSync(args.underlyingMint, feeRecipient);
   return new TransactionInstruction({
     programId,
     keys: [
@@ -133,7 +135,11 @@ export function buildWithdrawIx(args: {
       { pubkey: args.underlyingMint, isSigner: false, isWritable: false },
       { pubkey: shareMint, isSigner: false, isWritable: true },
       { pubkey: vaultToken, isSigner: false, isWritable: true },
-      { pubkey: feeRecipientAta, isSigner: false, isWritable: true },
+      {
+        pubkey: feeRecipientAta,
+        isSigner: false,
+        isWritable: !sameRecipient,
+      },
       { pubkey: userUnderlying, isSigner: false, isWritable: true },
       { pubkey: userShares, isSigner: false, isWritable: true },
       { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },

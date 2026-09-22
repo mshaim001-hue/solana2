@@ -1,5 +1,5 @@
 {
-  "address": "9gf1uFbnaP1LZymvDWmCW92aW7upE8KGvWudwdprq7hu",
+  "address": "5DTpb6picURvKtEVjXWbdX9coNFERr1gWDS8f59YXmMk",
   "metadata": {
     "name": "yield_vault",
     "version": "0.1.0",
@@ -531,7 +531,13 @@
         },
         {
           "name": "fee_recipient_ata",
-          "writable": true
+          "docs": [
+            "ATA of `vault.fee_recipient`.",
+            "Pass `None` (program id placeholder) when fee_recipient == user to avoid",
+            "duplicate mutable account (same ATA cannot appear twice as writable)."
+          ],
+          "writable": true,
+          "optional": true
         },
         {
           "name": "user_underlying",

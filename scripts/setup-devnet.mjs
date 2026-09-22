@@ -209,9 +209,12 @@ async function main() {
   ]);
   console.log("Fund+Deposit:", depositSig);
 
-  // Small withdraw with min_out = 0 (demo); fee → authority ATA
+  // Withdraw: user == fee_recipient → omit fee ATA (program id placeholder) + non-zero min_out
   const withdrawShares = 5_000_000n; // 5 share units (6 decimals)
-  const minOut = 0n;
+  const gross = withdrawShares; // 1:1 before extra yield accrual in demo
+  const fee = (gross * BigInt(feeBps)) / 10_000n;
+  const net = gross - fee;
+  const minOut = (net * 99n) / 100n; // 1% slippage buffer
   const withdrawTx = new Transaction().add(
     ComputeBudgetProgram.setComputeUnitLimit({ units: 400_000 }),
     {
@@ -222,7 +225,7 @@ async function main() {
         { pubkey: mintKp.publicKey, isSigner: false, isWritable: false },
         { pubkey: shareMint, isSigner: false, isWritable: true },
         { pubkey: vaultToken, isSigner: false, isWritable: true },
-        { pubkey: ata, isSigner: false, isWritable: true }, // fee_recipient ATA
+        { pubkey: PROGRAM_ID, isSigner: false, isWritable: false }, // fee_recipient_ata = None
         { pubkey: ata, isSigner: false, isWritable: true }, // user_underlying
         { pubkey: userShares, isSigner: false, isWritable: true },
         { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },

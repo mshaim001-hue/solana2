@@ -150,8 +150,21 @@ export function VaultApp() {
     send("Withdraw", async () => {
       if (!publicKey || !underlyingMint || !vault) throw new Error("Vault not ready");
       const shares = parseUnits(withdrawShares, 6);
+      if (shares <= 0n) throw new Error("Enter shares to withdraw");
+      if (vault.totalShares === 0n) throw new Error("Vault has no shares");
+
+      // Expected net after fee, then 1% slippage buffer → non-zero min_out
+      const gross = (shares * vault.totalAssets) / vault.totalShares;
+      const fee = (gross * BigInt(vault.withdrawalFeeBps)) / 10_000n;
+      const net = gross - fee;
+      const minOut = net > 0n ? (net * 99n) / 100n : 0n;
+      if (minOut === 0n) throw new Error("min_out would be zero — amount too small");
+
       const atas = await ensureAtas(connection, publicKey, [
         { mint: underlyingMint, owner: publicKey },
+        ...(publicKey.equals(vault.feeRecipient)
+          ? []
+          : [{ mint: underlyingMint, owner: vault.feeRecipient }]),
       ]);
       const tx = new Transaction().add(
         ...atas,
@@ -159,7 +172,7 @@ export function VaultApp() {
           user: publicKey,
           underlyingMint,
           shares,
-          minOut: 0n,
+          minOut,
           feeRecipient: vault.feeRecipient,
         })
       );

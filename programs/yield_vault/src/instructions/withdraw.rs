@@ -42,13 +42,16 @@ pub struct Withdraw<'info> {
     )]
     pub vault_token: Box<InterfaceAccount<'info, TokenAccount>>,
 
-    /// ATA of `vault.fee_recipient` — receives the withdrawal fee.
+    /// ATA of `vault.fee_recipient`.
+    /// Pass `None` (program id placeholder) when fee_recipient == user to avoid
+    /// duplicate mutable account (same ATA cannot appear twice as writable).
     #[account(
         mut,
         constraint = fee_recipient_ata.mint == vault.underlying_mint @ VaultError::InvalidMint,
         constraint = fee_recipient_ata.owner == vault.fee_recipient @ VaultError::InvalidTokenAccount,
+        constraint = fee_recipient_ata.key() != user_underlying.key() @ VaultError::InvalidTokenAccount,
     )]
-    pub fee_recipient_ata: Box<InterfaceAccount<'info, TokenAccount>>,
+    pub fee_recipient_ata: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
 
     #[account(
         mut,
@@ -73,6 +76,20 @@ pub fn handle_withdraw(ctx: Context<Withdraw>, shares: u64, min_out: u64) -> Res
         ctx.accounts.user_shares.amount >= shares,
         VaultError::InsufficientShares
     );
+
+    let fee_recipient = ctx.accounts.vault.fee_recipient;
+    let user_is_fee_recipient = fee_recipient == ctx.accounts.user.key();
+
+    match (
+        user_is_fee_recipient,
+        ctx.accounts.fee_recipient_ata.is_some(),
+    ) {
+        // Same wallet: must omit fee ATA (avoid duplicate mutable account).
+        (true, true) => return err!(VaultError::InvalidTokenAccount),
+        // Different wallet: fee ATA is required.
+        (false, false) => return err!(VaultError::InvalidTokenAccount),
+        _ => {}
+    }
 
     let vault = &mut ctx.accounts.vault;
     let clock = Clock::get()?;
@@ -111,37 +128,59 @@ pub fn handle_withdraw(ctx: Context<Withdraw>, shares: u64, min_out: u64) -> Res
     let decimals = ctx.accounts.underlying_mint.decimals;
     let token_program = ctx.accounts.token_program.key();
 
-    token_interface::transfer_checked(
-        CpiContext::new_with_signer(
-            token_program,
-            TransferChecked {
-                from: ctx.accounts.vault_token.to_account_info(),
-                mint: ctx.accounts.underlying_mint.to_account_info(),
-                to: ctx.accounts.user_underlying.to_account_info(),
-                authority: vault.to_account_info(),
-            },
-            signer,
-        ),
-        net,
-        decimals,
-    )?;
-
-    if fee > 0 {
-        // When user == fee_recipient the fee ATA may equal user_underlying; that is fine.
+    if user_is_fee_recipient {
+        // One transfer: user receives net + fee in the same ATA.
         token_interface::transfer_checked(
             CpiContext::new_with_signer(
                 token_program,
                 TransferChecked {
                     from: ctx.accounts.vault_token.to_account_info(),
                     mint: ctx.accounts.underlying_mint.to_account_info(),
-                    to: ctx.accounts.fee_recipient_ata.to_account_info(),
+                    to: ctx.accounts.user_underlying.to_account_info(),
                     authority: vault.to_account_info(),
                 },
                 signer,
             ),
-            fee,
+            total_out,
             decimals,
         )?;
+    } else {
+        token_interface::transfer_checked(
+            CpiContext::new_with_signer(
+                token_program,
+                TransferChecked {
+                    from: ctx.accounts.vault_token.to_account_info(),
+                    mint: ctx.accounts.underlying_mint.to_account_info(),
+                    to: ctx.accounts.user_underlying.to_account_info(),
+                    authority: vault.to_account_info(),
+                },
+                signer,
+            ),
+            net,
+            decimals,
+        )?;
+
+        if fee > 0 {
+            let fee_ata = ctx
+                .accounts
+                .fee_recipient_ata
+                .as_ref()
+                .ok_or(VaultError::InvalidTokenAccount)?;
+            token_interface::transfer_checked(
+                CpiContext::new_with_signer(
+                    token_program,
+                    TransferChecked {
+                        from: ctx.accounts.vault_token.to_account_info(),
+                        mint: ctx.accounts.underlying_mint.to_account_info(),
+                        to: fee_ata.to_account_info(),
+                        authority: vault.to_account_info(),
+                    },
+                    signer,
+                ),
+                fee,
+                decimals,
+            )?;
+        }
     }
 
     vault.total_shares = vault

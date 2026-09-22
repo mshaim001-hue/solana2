@@ -7,10 +7,10 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-yield_vault = "9gf1uFbnaP1LZymvDWmCW92aW7upE8KGvWudwdprq7hu"
+yield_vault = "5DTpb6picURvKtEVjXWbdX9coNFERr1gWDS8f59YXmMk"
 
 [programs.devnet]
-yield_vault = "9gf1uFbnaP1LZymvDWmCW92aW7upE8KGvWudwdprq7hu"
+yield_vault = "5DTpb6picURvKtEVjXWbdX9coNFERr1gWDS8f59YXmMk"
 
 [provider]
 cluster = "localnet"
